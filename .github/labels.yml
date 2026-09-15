@@ -1,0 +1,94 @@
+# Labels map 1:1 to GitHub Project fields in BA Blueprint Agent.
+# Sync via scripts/github-sync.py — do not create ad-hoc labels.
+
+- name: status:backlog
+  color: "BFD4F2"
+  description: Status = Backlog
+- name: status:ready
+  color: "0E8A16"
+  description: Status = Ready
+- name: status:in-progress
+  color: "1D76DB"
+  description: Status = In Progress
+- name: status:in-review
+  color: "5319E7"
+  description: Status = In Review
+- name: status:blocked
+  color: "B60205"
+  description: Status = Blocked
+- name: status:done
+  color: "0E8A16"
+  description: Status = Done
+- name: status:cancelled
+  color: "FFFFFF"
+  description: Status = Cancelled
+
+- name: priority:p0-critical
+  color: "B60205"
+  description: Priority = P0 Critical
+- name: priority:p1-high
+  color: "D93F0B"
+  description: Priority = P1 High
+- name: priority:p2-medium
+  color: "FBCA04"
+  description: Priority = P2 Medium
+- name: priority:p3-low
+  color: "C2E0C6"
+  description: Priority = P3 Low
+
+- name: type:feature
+  color: "1D76DB"
+  description: Type = Feature
+- name: type:story
+  color: "0052CC"
+  description: Type = Story
+- name: type:bug
+  color: "D73A4A"
+  description: Type = Bug
+- name: type:task
+  color: "C5DEF5"
+  description: Type = Task
+- name: type:spike
+  color: "D4C5F9"
+  description: Type = Spike
+
+- name: area:kiosk-ui
+  color: "0075CA"
+  description: Area = kiosk-ui
+- name: area:payment
+  color: "006B75"
+  description: Area = payment
+- name: area:safety-controller
+  color: "B60205"
+  description: Area = safety-controller
+- name: area:apply-quality
+  color: "BFDAD6"
+  description: Area = apply-quality
+- name: area:staff-console
+  color: "C2E0C6"
+  description: Area = staff-console
+- name: area:ledger-audit
+  color: "F9D0C4"
+  description: Area = ledger-audit
+- name: area:hardware-adapter
+  color: "FEF2C0"
+  description: Area = hardware-adapter
+- name: area:privacy-ops
+  color: "EDEDED"
+  description: Area = privacy-ops
+
+- name: risk:none
+  color: "FFFFFF"
+  description: Risk = None
+- name: risk:low
+  color: "C2E0C6"
+  description: Risk = Low
+- name: risk:medium
+  color: "FBCA04"
+  description: Risk = Medium
+- name: risk:high
+  color: "D93F0B"
+  description: Risk = High
+- name: risk:critical
+  color: "B60205"
+  description: Risk = Critical

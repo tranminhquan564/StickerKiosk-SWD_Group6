@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Blueprint StickerKiosk
+    url: https://github.com/OWNER/StickerKiosk-SWD_Group6/blob/main/docs/blueprint/stickerkiosk-blueprint.md
+    about: Đọc Software Development Blueprint trước khi mở issue mới

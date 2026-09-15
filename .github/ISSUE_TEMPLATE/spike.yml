@@ -1,0 +1,64 @@
+name: Spike / câu hỏi mở
+description: Việc nghiên cứu để đóng Open Question trong blueprint
+title: "[SP-###] "
+labels:
+  - "type:spike"
+  - "status:backlog"
+body:
+  - type: input
+    id: blueprint_id
+    attributes:
+      label: Blueprint ID
+      placeholder: SP-001 / Q-001
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 Critical
+        - P1 High
+        - P2 Medium
+        - P3 Low
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Câu hỏi mở, vì sao chặn phạm vi hoặc thiết kế
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Việc spike này quyết định gì; không xây sản phẩm trong spike
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Quyết định được ghi nhận (Decision) và owner
+    validations:
+      required: true
+  - type: textarea
+    id: dependency
+    attributes:
+      label: Dependency
+    validations:
+      required: true
+  - type: textarea
+    id: risk_detail
+    attributes:
+      label: Risk
+    validations:
+      required: true
+  - type: input
+    id: blueprint_link
+    attributes:
+      label: Link blueprint
+    validations:
+      required: true

@@ -1,0 +1,100 @@
+name: Yêu cầu chức năng (FR)
+description: Issue theo chuẩn BA Blueprint Agent — một chức năng đã xác nhận
+title: "[FR-###] "
+labels:
+  - "type:feature"
+  - "status:backlog"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Điền đủ các mục. Issue chỉ Ready khi có Blueprint ID, acceptance criteria, dependency và risk.
+  - type: input
+    id: blueprint_id
+    attributes:
+      label: Blueprint ID
+      placeholder: FR-001
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 Critical
+        - P1 High
+        - P2 Medium
+        - P3 Low
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - kiosk-ui
+        - payment
+        - safety-controller
+        - apply-quality
+        - staff-console
+        - ledger-audit
+        - hardware-adapter
+        - privacy-ops
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk
+      options:
+        - None
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Bối cảnh nghiệp vụ, actor, và vì sao chức năng này tồn tại
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: In-scope / out-of-scope của issue này
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Given / When / Then. Phải kiểm chứng được.
+      value: |
+        - Given [ngữ cảnh], when [sự kiện], then [kết quả quan sát được].
+    validations:
+      required: true
+  - type: textarea
+    id: dependency
+    attributes:
+      label: Dependency
+      description: FR/NFR/UC phụ thuộc, phần cứng, cổng QR, quyết định còn mở
+    validations:
+      required: true
+  - type: textarea
+    id: risk_detail
+    attributes:
+      label: Risk
+      description: Rủi ro, giả định, và điều kiện an toàn
+    validations:
+      required: true
+  - type: input
+    id: blueprint_link
+    attributes:
+      label: Link blueprint
+      placeholder: docs/blueprint/stickerkiosk-blueprint.md#fr-001
+    validations:
+      required: true

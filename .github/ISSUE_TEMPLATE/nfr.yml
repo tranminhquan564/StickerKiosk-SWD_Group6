@@ -1,0 +1,69 @@
+name: Yêu cầu phi chức năng (NFR)
+description: Mục tiêu chất lượng đo được — performance, an toàn, privacy, vận hành
+title: "[NFR-###] "
+labels:
+  - "type:task"
+  - "status:backlog"
+body:
+  - type: input
+    id: blueprint_id
+    attributes:
+      label: Blueprint ID
+      placeholder: NFR-001
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 Critical
+        - P1 High
+        - P2 Medium
+        - P3 Low
+    validations:
+      required: true
+  - type: input
+    id: category
+    attributes:
+      label: Category
+      placeholder: Safety / Performance / Privacy / Operability
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Target, metric, và cách đo
+    validations:
+      required: true
+  - type: textarea
+    id: dependency
+    attributes:
+      label: Dependency
+    validations:
+      required: true
+  - type: textarea
+    id: risk_detail
+    attributes:
+      label: Risk
+    validations:
+      required: true
+  - type: input
+    id: blueprint_link
+    attributes:
+      label: Link blueprint
+    validations:
+      required: true
