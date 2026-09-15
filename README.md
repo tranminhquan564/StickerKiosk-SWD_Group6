@@ -1,0 +1,1 @@
+# StickerKiosk-SWD_Group6
