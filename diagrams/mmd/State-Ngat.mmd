@@ -1,0 +1,26 @@
+stateDiagram-v2
+    direction TB
+    %% Cùng máy trạng thái ORDER. Trang này chỉ ngắt điện và e-stop hàng loạt.
+    DeviceInserted --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    DeviceMisaligned --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    DeviceUnsupported --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    Locked --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    QualityChecking --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    ReadyForPickup --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    ApplicationFailed --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    QualityCheckFailed --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    UnclaimedDevice --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    EmergencyStopped --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    ManualRecovery --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11
+    Created --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    PaymentPending --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    Paid --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    DeviceInserted --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    DeviceMisaligned --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    DeviceUnsupported --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    Locked --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    QualityChecking --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    ReadyForPickup --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    UnclaimedDevice --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    ApplicationFailed --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02
+    QualityCheckFailed --> EmergencyStopped: CUS STF OPS / E-stop cắt motion, khay giữ nguyên khóa / SR-02

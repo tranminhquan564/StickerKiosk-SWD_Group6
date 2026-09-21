@@ -1,0 +1,23 @@
+flowchart TD
+    E1["CUS, STF hoặc OPS bấm e-stop vật lý"]
+    E2["LOC cắt chuyển động ngay: safe_halt và estop_ack"]
+    E3["Khay giữ đúng trạng thái khóa lúc nhấn. Không tự unlock"]
+    E4["ORDER = EmergencyStopped. Kiosk.mode = EMERGENCY_STOP"]
+    E5["Nếu đang Applying: không gán thêm ApplicationFailed. Mở INCIDENT HIGH"]
+    E6["LOC từ chối apply mới"]
+    E7["Chỉ STF hoặc OPS đã đăng nhập PIN được reset, khi vùng trống và không có tay"]
+    E8["LOC về HOME. ORDER = ManualRecovery. Không tự dán tiếp"]
+    P1["Nhánh mất điện, khác e-stop: UPS snapshot order_id rồi an toàn hóa"]
+    P2["ORDER = PowerLost. Không tự mở khay"]
+    P3["Có điện: không tự resume. STF ManualRecovery. Chưa dán thì hoàn 100%"]
+    E1 -->|"SR-02"| E2
+    E2 -->|"SR-02"| E3
+    E3 -->|"SR-02"| E4
+    E4 -->|"P3 một status · BR-APL-01 · BR-INC-01"| E5
+    E4 -->|"SR-01 · BR-LCK-01"| E6
+    E6 -->|"SR-03 · BR-ACL-01"| E7
+    E7 -->|"GR-03 · SR-03 · BR-ACL-01"| E8
+    P1 -->|"SR-10 · SR-11"| P2
+    P2 -->|"SR-12 · PR-06 · SR-13"| P3
+    NOTE_21["SR-13: mục tiêu có thể mở khóa theo quy trình trong 2 phút sau khi có điện, không tính thời gian nhân viên đi tới."]
+    NOTE_22["Không thiết kế UPS, tay máy hay sơ đồ điện. Sequence chỉ là contract an toàn phần mềm."]

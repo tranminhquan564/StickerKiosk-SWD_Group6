@@ -1,0 +1,46 @@
+flowchart TD
+    R0["Có hay chưa có PAYMENT Success?"]
+    R1["QR hết hạn hoặc thanh toán fail: không thu, không tạo hoàn"]
+    R2["Paid, hủy trước khi khóa khay: tự động 100%"]
+    R3["Paid, hết 300 giây không đặt máy: tự động 100%"]
+    R4["DeviceUnsupported hoặc hết lượt lệch: tự động 100% sau khi khay trống"]
+    R5["PaymentUnknown rồi xác nhận không có tiền: không hoàn, Cancelled"]
+    R5B["Nếu sau đó provider báo đã có tiền: hoàn 100%"]
+    R6["ApplicationFailed, tem chưa chạm: tự động 100%, STF mở khóa"]
+    R7["ApplicationFailed, tem đã chạm: tự động 100%, INCIDENT, không tự gỡ tem"]
+    R8["QA fail, khách không nhận: tự động 100% sau khi STF xác nhận"]
+    R9["QA fail, khách vẫn nhận: tự động 100%. MVP không bán hàng lỗi"]
+    R10["Completed, QA pass, khách đổi ý: từ chối, hiện lý do"]
+    R11["Nghi hư máy, trầy, tranh chấp: OPS duyệt. Phần mềm không bồi thường máy"]
+    R12["Nghi gian lận: OPS khóa hoàn tự động, giữ ảnh"]
+    R13["CLD tạo REFUND_REQUEST và PAYMENT purpose REFUND. ORDER = RefundPending rồi Refunded khi provider success"]
+    R14["Provider success: ORDER = Refunded. Chỉ từ RefundPending"]
+    R6M["ORDER giữ ManualRecovery. REFUND_REQUEST ghi hoàn 100%. Không gán Refunded"]
+    R15["Fail 3 lần hoặc RefundPending quá 24 giờ: ManualRecovery, báo OPS, vẫn trả máy theo an toàn"]
+    R0 -->|"Chưa Success · BR-STK-02"| R1
+    R0 -->|"PR-06 · mục 11"| R2
+    R0 -->|"Hết 300 giây · PR-06"| R3
+    R0 -->|"Khay trống · BR-DEV-02 · PR-06"| R4
+    R0 -->|"BR-PAY-03"| R5
+    R5 -->|"BR-PAY-03 · PR-06"| R5B
+    R0 -->|"BR-APL-01 · PR-06 · BR-ACL-01"| R6
+    R0 -->|"BR-APL-01 · BR-INC-01 · BR-INC-02 · PR-06"| R7
+    R0 -->|"BR-INC-03 · PR-06"| R8
+    R0 -->|"PR-06 · BR-INC-03"| R9
+    R0 -->|"PR-07 · BR-STA-02"| R10
+    R0 -->|"BR-INC-02"| R11
+    R0 -->|"BR-INC-02 · BR-CUS-03"| R12
+    R2 -->|"AUTO · PR-06 · BR-CUS-04"| R13
+    R3 -->|"AUTO · PR-06"| R13
+    R4 -->|"AUTO sau khay trống · PR-06"| R13
+    R5B -->|"AUTO · PR-06"| R13
+    R6 -->|"Mục 10.2 giữ ManualRecovery · PR-06 · BR-ACL-01"| R6M
+    R7 -->|"Mục 10.2 giữ ManualRecovery · PR-06 · BR-INC-01"| R6M
+    R8 -->|"Mục 10.2 giữ ManualRecovery · PR-06 · BR-INC-03"| R6M
+    R9 -->|"Mục 10.2 giữ ManualRecovery · PR-06"| R6M
+    R11 -->|"OPS duyệt. Không tự Refunded · BR-INC-02 · PR-08"| R6M
+    R13 -->|"PR-06"| R14
+    R13 -->|"PR-08"| R15
+    NOTE_43["PR-07: mọi từ chối hoàn phải hiện lý do trên màn hình và trên phiếu sự cố."]
+    NOTE_44["Mục 10.2 không có mũi tên ApplicationFailed sang RefundPending. Status an toàn là ManualRecovery; tiền đi theo REFUND_REQUEST."]
+    NOTE_45["Không hoàn tiền mặt tại kiosk · PR-06. Không lưu PAN · BR-CUS-04."]

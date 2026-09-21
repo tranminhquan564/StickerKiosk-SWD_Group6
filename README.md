@@ -22,6 +22,20 @@ Cần GitHub CLI (`gh`) đã `gh auth login`, hoặc biến `GH_TOKEN` / `GITHUB
 - Issue templates: `.github/ISSUE_TEMPLATE/`
 - Label chuẩn field Project: `.github/labels.yml`
 
+## Sơ đồ nghiệp vụ (MVP v2)
+
+Nguồn sự thật là `DacTaNghiepVu_MVP_v2.docx`. Handoff nằm ở `CURSOR_HANDOFF_SWD392.md`.
+
+| File | Vai trò |
+|---|---|
+| `diagrams/mmd/` | Mermaid: Use Case, Activity, state ORDER, sequence, ERD |
+| `diagrams/kiosk.drawio` | Cùng nội dung, mở bằng diagrams.net |
+| `hoanhthanh1.json` | Sơ đồ trong Cursor |
+| `diagrams/build_hoanhthanh1.py` | Sinh JSON và Mermaid |
+| `diagrams/export_drawio.py` | Sinh draw.io. Trước khi xuất lại, xóa `diagrams/mmd/State-Ngat.mmd` |
+
+Không thiết kế phần cứng. Mọi transition bám mã BR/GR/PR/SR/TR của v2.
+
 ## Quy ước delivery (WS_01_FU)
 
 - Issue: `[FR-###] Tên ngắn` (cũng dùng `[NFR-###]`, `[SP-###]`)

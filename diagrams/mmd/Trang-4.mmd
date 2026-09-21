@@ -1,0 +1,234 @@
+erDiagram
+    PHONE_MODEL {
+        string phone_model_id PK
+        string name
+        string is_supported "BR-CAT-01"
+        string width_mm
+        string height_mm
+        string thickness_mm
+        string camera_mask
+        string align_template_uri "BR-DEV-01"
+        string qa_offset_max_mm "GR-08"
+    }
+    STICKER_PATTERN {
+        string sticker_pattern_id PK
+        string name
+        string preview_uri
+    }
+    STICKER_ITEM {
+        string sticker_item_id PK
+        string sticker_pattern_id FK
+        string phone_model_id FK
+        string price "BR-CAT-03"
+        string estimated_seconds "BR-CAT-04"
+        string active "BR-CAT-05"
+        string slot_code "mục 18"
+    }
+    KIOSK {
+        string kiosk_id PK
+        string mode "GR-01 SERVING OUT_OF_SERVICE MAINTENANCE EMERGENCY_STOP"
+        string max_force_n "GR-08 SR-04"
+        string align_tolerance_mm "GR-08"
+        string qa_offset_max_mm "GR-08"
+        string force_maintenance "BR-OPS-05"
+        string last_heartbeat_at "GR-02"
+    }
+    KIOSK_STOCK {
+        string kiosk_stock_id PK
+        string kiosk_id FK
+        string sticker_item_id FK
+        string stock_natural_key UK "unique kiosk_id và sticker_item_id"
+        string on_hand
+        string reserved "BR-STK-01"
+        string reorder_threshold "BR-STK-05"
+        string slot_code "BR-OPS-03"
+    }
+    CUSTOMER {
+        string customer_id PK
+        string phone_vn "nullable BR-CUS-02"
+    }
+    KIOSK_SESSION {
+        string session_id PK
+        string kiosk_id FK
+        string anonymous "BR-CUS-01"
+        string started_at
+        string last_touch_at "mục 12"
+    }
+    ORDER {
+        string order_id PK
+        string status "enum mục 10.1 BR-STA-01"
+        string kiosk_id FK
+        string phone_model_id FK
+        string sticker_item_id FK
+        string customer_id FK "nullable BR-CUS-01"
+        string session_id FK
+        string price_snapshot "BR-CAT-03"
+        string attempt_align_count "BR-DEV-02"
+        string phone_optional "BR-CUS-02"
+        string started_insert_at
+        string origin "KIOSK"
+    }
+    PAYMENT {
+        string payment_id PK
+        string order_id FK "PR-01"
+        string provider_payment_id UK "PR-04"
+        string provider
+        string amount "PR-03 PR-05"
+        string status
+        string purpose "CHARGE hoặc REFUND"
+        string paid_at "BR-CUS-04 không lưu PAN"
+    }
+    PAYMENT_WEBHOOK_LOG {
+        string webhook_id PK
+        string payment_id FK "nullable"
+        string provider_payment_id
+        string amount
+        string accepted
+        string reason "BR-PAY-03"
+        string received_at "BR-PAY-02"
+    }
+    TRANSACTION_STATE_LOG {
+        string log_id PK
+        string order_id FK
+        string kiosk_id FK "BR-ACL-01"
+        string from_status
+        string to_status
+        string actor_type
+        string actor_id "BR-ACL-01"
+        string reason
+        string rule_code
+        string at
+    }
+    DEVICE_INSPECTION {
+        string inspection_id PK
+        string order_id FK
+        string attempt_no "BR-DEV-02"
+        string result "PASS EMPTY MISALIGNED UNSUPPORTED HAND"
+        string width_delta_mm
+        string yaw_deg
+        string center_offset_mm
+        string thickness_delta_mm
+        string photo_uri "BR-CUS-03"
+        string at
+    }
+    QUALITY_CHECK {
+        string quality_check_id PK
+        string order_id FK
+        string offset_mm
+        string rotation_deg
+        string camera_clear
+        string bubble_ok
+        string edge_ok
+        string sku_code_match
+        string pass
+        string photo_uri "BR-CUS-05"
+        string checked_at
+    }
+    ROBOT_ARM {
+        string robot_arm_id PK
+        string kiosk_id FK
+        string state
+        string at_home "GR-03"
+        string fault "GR-03"
+        string scope "chỉ interface local, không lưu góc khớp"
+    }
+    ROBOT_EVENT_LOG {
+        string event_id PK
+        string robot_arm_id FK
+        string kiosk_id FK
+        string order_id FK "nullable"
+        string event_type
+        string force_n "SR-04"
+        string sku_slot
+        string picker_taken "BR-STK-04"
+        string tray_locked "SR-01"
+        string e_stop "SR-02"
+        string at
+    }
+    STAFF {
+        string staff_id PK
+        string role "STF hoặc OPS"
+        string pin_hash "BR-ACL-01"
+        string display_name
+    }
+    STAFF_ACTION_LOG {
+        string action_id PK
+        string staff_id FK
+        string kiosk_id FK
+        string order_id FK "nullable"
+        string action
+        string reason "BR-ACL-01"
+        string at
+    }
+    INCIDENT_REPORT {
+        string incident_id PK
+        string order_id FK "BR-INC-01"
+        string kiosk_id FK
+        string robot_arm_id FK "nullable"
+        string staff_id FK "nullable"
+        string level
+        string photo_uris "BR-CUS-05"
+        string force_log_ref
+        string tray_has_device "BR-INC-03"
+        string sticker_contacted "BR-INC-03"
+        string customer_present "BR-INC-03"
+        string handover_external "BR-INC-04"
+        string opened_at
+    }
+    REFUND_REQUEST {
+        string refund_request_id PK
+        string order_id FK
+        string payment_id FK "PR-06"
+        string requested_by_staff_id FK "nullable"
+        string approved_by_staff_id FK "nullable"
+        string amount
+        string mode "AUTO hoặc MANUAL"
+        string status
+        string reason_code
+        string reject_reason "PR-07"
+        string attempt_count "PR-08"
+    }
+    MAINTENANCE_LOG {
+        string maintenance_id PK
+        string kiosk_id FK
+        string staff_id FK
+        string robot_arm_id FK "nullable"
+        string kiosk_stock_id FK "nullable"
+        string log_type "RESTOCK CLEAN CHECKLIST SERVICE"
+        string note "BR-STK-06 BR-OPS-01"
+        string at
+    }
+    PHONE_MODEL ||--o{ STICKER_ITEM : "mỗi model 0..* SKU · mỗi SKU đúng 1 model · BR-CAT-01"
+    STICKER_PATTERN ||--o{ STICKER_ITEM : "mỗi mẫu 0..* SKU · mỗi SKU đúng 1 mẫu"
+    KIOSK ||--o{ KIOSK_STOCK : "mỗi kiosk 0..* dòng tồn · BR-STK-01"
+    STICKER_ITEM ||--o{ KIOSK_STOCK : "mỗi SKU 0..* tồn theo kiosk · BR-STK-05"
+    CUSTOMER |o--o{ ORDER : "mỗi đơn 0..1 khách · mỗi khách 0..* đơn · BR-CUS-01"
+    PHONE_MODEL ||--o{ ORDER : "mỗi đơn đúng 1 model đã chọn · BR-SEL-01"
+    STICKER_ITEM ||--o{ ORDER : "mỗi đơn đúng 1 SKU · giá chụp lúc tạo · BR-CAT-03"
+    KIOSK ||--o{ ORDER : "mỗi đơn đúng 1 kiosk"
+    KIOSK ||--o{ KIOSK_SESSION : "mỗi kiosk 0..* phiên · BR-CUS-01"
+    KIOSK_SESSION ||--o| ORDER : "mỗi phiên 0..1 đơn · mỗi đơn đúng 1 phiên"
+    ORDER ||--o{ PAYMENT : "mỗi đơn 0..* payment · chỉ 1 Success · PR-01 PR-02"
+    PAYMENT |o--o{ PAYMENT_WEBHOOK_LOG : "webhook có thể chưa ghép payment · BR-PAY-02 PR-04"
+    ORDER ||--o{ TRANSACTION_STATE_LOG : "vết status, không mâu ORDER.status · BR-STA-01"
+    KIOSK ||--o{ TRANSACTION_STATE_LOG : "log ghi kiosk_id · BR-ACL-01"
+    ORDER ||--o{ DEVICE_INSPECTION : "mỗi lần đo bước 7 · BR-DEV-01"
+    ORDER ||--o{ QUALITY_CHECK : "kết quả QA mục 9 bước 10"
+    KIOSK ||--|{ ROBOT_ARM : "mỗi kiosk 1..* tay qua interface · GR-03"
+    ROBOT_ARM ||--o{ ROBOT_EVENT_LOG : "sự kiện local"
+    KIOSK ||--o{ ROBOT_EVENT_LOG : "event tại kiosk"
+    ORDER |o--o{ ROBOT_EVENT_LOG : "event có thể chưa gắn đơn"
+    STAFF ||--o{ STAFF_ACTION_LOG : "audit người dùng · BR-ACL-01"
+    ORDER |o--o{ STAFF_ACTION_LOG : "thao tác có thể không gắn đơn"
+    KIOSK ||--o{ STAFF_ACTION_LOG : "thao tác tại kiosk · BR-ACL-01"
+    STAFF |o--o{ INCIDENT_REPORT : "có thể chưa gán nhân viên · BR-INC-03"
+    ORDER ||--o{ INCIDENT_REPORT : "sự cố gắn đơn · BR-INC-01"
+    KIOSK ||--o{ INCIDENT_REPORT : "hiện trường"
+    ROBOT_ARM |o--o{ INCIDENT_REPORT : "nguồn lực nếu có · BR-APL-01"
+    ORDER ||--o{ REFUND_REQUEST : "một đơn nhiều yêu cầu hoàn"
+    PAYMENT ||--o{ REFUND_REQUEST : "hoàn đúng giao dịch Success · PR-06"
+    STAFF |o--o{ REFUND_REQUEST : "nhánh tay · PR-08"
+    STAFF ||--o{ MAINTENANCE_LOG : "người thực hiện · BR-OPS-01"
+    KIOSK ||--o{ MAINTENANCE_LOG : "BR-OPS-05"
+    ROBOT_ARM |o--o{ MAINTENANCE_LOG : "bảo trì interface, không phải BOM"
+    KIOSK_STOCK |o--o{ MAINTENANCE_LOG : "RESTOCK · BR-STK-06"

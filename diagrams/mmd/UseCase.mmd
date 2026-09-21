@@ -1,0 +1,101 @@
+flowchart LR
+    CUS(("CUS — Khách vãng lai"))
+    SYS(("SYS — Hệ thống kiosk"))
+    LOC(("LOC — Local controller"))
+    CLD(("CLD — Cloud backend"))
+    STF(("STF — Nhân viên hỗ trợ"))
+    OPS(("OPS — Quản lý vận hành"))
+    PAY(("PAY — Payment provider"))
+    UC01["UC01 Bắt đầu phiên / chọn dịch vụ | BR-CUS-01 · GR-01..GR-08"]
+    UC02["UC02 Chọn model | BR-CAT-01 · BR-SEL-01"]
+    UC03["UC03 Chọn pattern / SKU | BR-CAT-02 · BR-CAT-04"]
+    UC04["UC04 Xác nhận 4 điều kiện an toàn | BR-SEL-02"]
+    UC05["UC05 Thanh toán QR | BR-PAY-01 · BR-PAY-02 · PR-03 · PR-05"]
+    UC06["UC06 Hủy đơn chưa Paid | BR-STK-02"]
+    UC07["UC07 Hủy đơn đã Paid, chưa khóa khay | PR-06"]
+    UC08["UC08 Đặt máy / đặt lại tối đa 2 lần | BR-PAY-01 · BR-DEV-02"]
+    UC09["UC09 Lấy máy | mục 9 bước 11"]
+    UC10["UC10 Bấm e-stop vật lý | SR-02"]
+    UC20["UC20 Reserve tồn + tạo QR | BR-STK-01 · BR-STK-02 · GR-05 · GR-06"]
+    UC21["UC21 Nhận webhook / inquiry | BR-PAY-02 · BR-PAY-03 · PR-02 · PR-04"]
+    UC22["UC22 Khớp template đã chọn, không AI | BR-DEV-01 · BR-DEV-03"]
+    UC23["UC23 Khóa khay | BR-LCK-01 · SR-01"]
+    UC24["UC24 Apply sticker đúng 1 lần | BR-APL-01 · BR-APL-02 · SR-04 · SR-05"]
+    UC25["UC25 Quality check | mục 9 bước 10. Fail: BR-INC-01"]
+    UC26["UC26 Hoàn tiền tự động theo ma trận | PR-06 · PR-07"]
+    UC27["UC27 Timeout QR / Paid / pickup | mục 12. Phiên đã Paid: TR-01. Quá 180 giây: TR-02"]
+    UC28["UC28 Queue event khi mất mạng | SR-20 · SR-21 · SR-22 · SR-24"]
+    UC29["UC29 Kiosk SERVING hoặc OUT_OF_SERVICE | GR-01..GR-08 · SR-23 · BR-OPS-04"]
+    UC30["UC30 Đăng nhập PIN / thẻ | BR-ACL-01"]
+    UC31["UC31 ManualRecovery và mở khóa | BR-ACL-01 · SR-03 · SR-12"]
+    UC32["UC32 Reset e-stop và về HOME | SR-03 · GR-03"]
+    UC33["UC33 Nạp tồn đúng slot | BR-STK-06 · BR-OPS-03"]
+    UC34["UC34 Checklist mở ca / đóng ca | BR-OPS-01 · BR-OPS-02"]
+    UC35["UC35 Đề nghị hoặc duyệt hoàn tay | PR-08 · BR-INC-02"]
+    UC36["UC36 Tắt model/SKU, sửa giá, ngưỡng | BR-CAT-05 · GR-08 · BR-OPS-05"]
+    UC37["UC37 Xử lý UnclaimedDevice | TR-02 · BR-INC-04"]
+    UC38["UC38 Xem INCIDENT và ảnh | BR-INC-01 · BR-CUS-05 · BR-CUS-03"]
+    CUS --> UC01
+    CUS --> UC02
+    CUS --> UC03
+    CUS --> UC04
+    CUS --> UC05
+    CUS --> UC06
+    CUS --> UC07
+    CUS --> UC08
+    CUS --> UC09
+    CUS --> UC10
+    SYS --> UC20
+    SYS --> UC21
+    SYS --> UC22
+    SYS --> UC23
+    SYS --> UC25
+    SYS --> UC26
+    SYS --> UC27
+    SYS --> UC28
+    SYS --> UC29
+    STF --> UC30
+    STF --> UC31
+    STF --> UC32
+    STF --> UC33
+    STF --> UC34
+    STF --> UC37
+    STF --> UC38
+    OPS --> UC35
+    OPS --> UC36
+    PAY --> UC21
+    LOC --> UC22
+    LOC --> UC23
+    LOC --> UC24
+    LOC --> UC25
+    LOC --> UC28
+    CLD --> UC20
+    CLD --> UC21
+    CLD --> UC26
+    CLD --> UC28
+    PAY -->|"tham gia · PR-03"| UC05
+    PAY -->|"tham gia · PR-06"| UC26
+    LOC -->|"tham gia · SR-02"| UC10
+    CLD -->|"tham gia · TR-01"| UC27
+    OPS -->|"tham gia · BR-ACL-01"| UC31
+    OPS -->|"tham gia · SR-03"| UC32
+    STF -->|"đề nghị · OPS duyệt"| UC35
+    STF -->|"tham gia · SR-02"| UC10
+    SYS -->|"tạo ORDER Created"| UC01
+    UC05 -->|"«include» · BR-STK-01"| UC20
+    UC05 -->|"«include» · BR-PAY-02"| UC21
+    UC08 -->|"«include» · BR-DEV-01"| UC22
+    UC23 -->|"«include» đo trước khi khóa · BR-DEV-01"| UC22
+    UC24 -->|"«include» khay locked trước motion · BR-LCK-01 · SR-01"| UC23
+    UC24 -->|"«include» QA sau apply_done · BR-APL-02"| UC25
+    UC07 -->|"«include» · PR-06"| UC26
+    UC26 -->|"«extend» khi timeout đã thu tiền · PR-06"| UC27
+    UC10 -->|"«extend» ngắt apply · SR-02"| UC24
+    UC32 -->|"«include» reset sau e-stop · SR-03"| UC10
+    UC28 -->|"«extend» mất mạng lúc Pending · SR-21"| UC21
+    UC37 -->|"«include» · BR-INC-01"| UC38
+    UC34 -->|"cổng SERVING · BR-OPS-01"| UC29
+    UC35 -->|"«extend» hoàn tay · PR-08"| UC26
+    UC33 -->|"cùng ca · BR-STK-06 · BR-OPS-01"| UC34
+    NGOAI["Ngoài hệ thống: TTTM, bảo hiểm, vendor robot. Không vẽ đăng ký tài khoản khách, AI nhận model, app điều khiển robot, BOM hay khớp tay máy."]
+    TICK["UC04 — 4 ý bắt buộc: đúng model đã chọn; đã/sẽ tháo ốp và phụ kiện; lưng khô không nứt và sẽ lau; hiểu khay khóa, sự cố do nhân viên. BR-SEL-02."]

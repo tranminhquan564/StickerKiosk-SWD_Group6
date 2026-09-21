@@ -1,0 +1,40 @@
+flowchart TD
+    S1["CUS tick đủ 4 điều kiện trên kiosk"]
+    S2["SYS kiểm lại GR-01..GR-08, model, SKU, stock_available"]
+    S3["CLD giữ ORDER PaymentPending, price_snapshot, customer có thể null"]
+    S4["CLD reserve: available = on_hand trừ reserved. Giữ tối đa 7 phút"]
+    S5["PAY tạo QR. Amount bằng price_snapshot. Hết hạn 300 giây. Không phụ phí"]
+    S6["SYS hiện QR. Không mở khay. Không có nút Tôi đã trả. Điện thoại không điều khiển robot"]
+    S7["PAY gửi webhook tới CLD"]
+    S8["CLD đối amount, order_id, provider_payment_id"]
+    S9["Sai amount hoặc sai order: từ chối webhook. ORDER vẫn PaymentPending"]
+    S9B["Webhook khác inquiry: PaymentUnknown, không dán, giữ reserve"]
+    S9C["Đối soát trong 15 phút xác nhận có tiền: ORDER = Paid"]
+    S10["Trùng provider_payment_id: bỏ qua, không tạo Success thứ hai"]
+    S11["Khớp: một PAYMENT purpose CHARGE status Success. ORDER = Paid"]
+    S12["SYS hướng dẫn tháo ốp, lau, đặt máy. Không reset phiên"]
+    S13["Provider fail hoặc QR hết hạn: PaymentFailed rồi Cancelled, nhả reserve, không hoàn"]
+    S14["CUS hủy lúc Pending: Cancelled, hủy QR nếu provider hỗ trợ, nhả reserve"]
+    S15["Mất mạng lúc Pending: không đoán Paid. Xếp event, inquiry khi có mạng"]
+    S16["Vẫn unknown sau 15 phút: ManualRecovery, không dán"]
+    S1 -->|"BR-SEL-02"| S2
+    S2 -->|"GR-01..GR-08 · BR-CAT-01 · BR-CAT-02 · BR-CAT-03 · BR-CUS-01"| S3
+    S3 -->|"BR-STK-01 · BR-STK-02"| S4
+    S4 -->|"PR-03 · PR-05"| S5
+    S5 -->|"BR-PAY-01 · BR-PAY-02"| S6
+    S6 -->|"CUS quét QR · P6"| S7
+    S7 -->|"BR-PAY-02 · BR-CUS-04"| S8
+    S8 -->|"Từ chối webhook · PR-03"| S9
+    S8 -->|"Webhook lệch inquiry · BR-PAY-03"| S9B
+    S9B -->|"Đối soát có tiền · BR-PAY-03"| S9C
+    S9B -->|"Quá 15 phút vẫn unknown · BR-PAY-03"| S16
+    S8 -->|"Idempotent · PR-04 · PR-02"| S10
+    S8 -->|"Webhook là nguồn Paid · BR-PAY-02 · PR-02"| S11
+    S11 -->|"TR-01"| S12
+    S6 -->|"Hết 300 giây hoặc fail · BR-STK-02"| S13
+    S6 -->|"CUS hủy chưa Paid · BR-STK-02"| S14
+    S6 -->|"Đứt mạng · SR-20 · SR-21 · SR-24"| S15
+    S15 -->|"Có mạng thì inquiry, không đoán Paid · SR-21 SR-24"| S8
+    S15 -->|"Hết 15 phút vẫn unknown · BR-PAY-03"| S16
+    NOTE_38["Ví dụ mục 20: iPhone 15 Pro Max, tem trong suốt, 199000, còn 8 tấm, Paid rồi mới đặt. Không phải rule mới."]
+    NOTE_39["Kiosk không tự gán Paid. UI polling chỉ để hiển thị · BR-PAY-02."]

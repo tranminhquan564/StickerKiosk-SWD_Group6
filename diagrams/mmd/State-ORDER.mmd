@@ -1,0 +1,39 @@
+stateDiagram-v2
+    direction TB
+    [*] --> Created: CUS / Kiosk đang SERVING, bắt đầu phiên ẩn danh / GR-01 BR-CUS-01
+    Created --> PaymentPending: SYS / SKU hợp lệ, đủ 4 tick, còn hàng, tạo QR được / BR-CAT-01 BR-CAT-02 BR-CAT-03 BR-STK-01 BR-SEL-02
+    Created --> Cancelled: SYS / Khách rời, quá 120 giây không chọn, hoặc hết SERVING / GR-01
+    PaymentPending --> Paid: PAY / Webhook success, amount khớp, đúng order, chưa có Success khác / BR-PAY-02 PR-02 PR-03 PR-04
+    PaymentPending --> PaymentFailed: PAY / Provider fail hoặc QR hết 300 giây / BR-STK-02
+    PaymentPending --> PaymentUnknown: CLD / Webhook lệch inquiry, không dán / BR-PAY-03
+    PaymentPending --> Cancelled: CUS / Hủy khi chưa Paid, nhả reserve / BR-STK-02
+    PaymentUnknown --> Paid: CLD / Đối soát trong 15 phút, xác nhận có tiền / BR-PAY-03
+    PaymentUnknown --> PaymentFailed: CLD / Đối soát không có tiền / BR-PAY-03
+    PaymentUnknown --> ManualRecovery: SYS / Quá 15 phút vẫn unknown, không dán / BR-PAY-03
+    PaymentFailed --> Cancelled: SYS / Nhả reserve, không giữ tiền, không phát sinh hoàn / BR-STK-02
+    Paid --> DeviceInserted: LOC / Cảm biến có máy và payment đã Paid / BR-PAY-01
+    Paid --> RefundPending: SYS / Hết 300 giây không đặt máy, hoặc khách hủy trước khóa / PR-06
+    DeviceInserted --> Locked: LOC / Template Pass và tray_locked / BR-DEV-01
+    DeviceInserted --> DeviceMisaligned: LOC / Nhiều vật, góc lệch quá 3 độ, hoặc tâm lệch quá 2 mm / BR-DEV-01
+    DeviceInserted --> DeviceUnsupported: LOC / Kích thước hoặc độ dày không khớp, cấm skip / BR-DEV-01 BR-DEV-03
+    DeviceMisaligned --> Paid: SYS / Còn lượt đặt lại, chưa tới lần 3, không apply / BR-DEV-02
+    DeviceMisaligned --> RefundPending: SYS / Lần 3 fail, khay không khóa hoặc đã mở, rồi khay trống / BR-DEV-02
+    DeviceUnsupported --> RefundPending: SYS / Khay không khóa hoặc đã mở để rút, cảm biến trống / PR-06
+    Locked --> Applying: LOC / Đủ robot_enable và local không từ chối / BR-LCK-01 SR-01 BR-APL-02
+    Applying --> QualityChecking: LOC / apply_done, không fault / BR-APL-02 BR-STK-03
+    Applying --> ApplicationFailed: LOC / Lực, mất bước, mở khay hoặc mất sensor. Giữ khóa, không retry / BR-APL-01 SR-04 SR-05 BR-INC-01
+    Applying --> EmergencyStopped: CUS STF OPS / E-stop cắt motion. Một status, khay giữ khóa, có INCIDENT / SR-02 BR-APL-01 BR-INC-01
+    QualityChecking --> ReadyForPickup: SYS / QA Pass. Cạnh tối đa 1.5 mm, xoay tối đa 1.5 độ, không đè mask, không bọt trên 3 mm, không hở góc / mục 9 bước 10
+    QualityChecking --> QualityCheckFailed: SYS / QA Fail, giữ khóa, không tự mở / BR-INC-01
+    ReadyForPickup --> Completed: LOC / Khay trống sau khi mở / mục 9 bước 11
+    ReadyForPickup --> UnclaimedDevice: SYS / Quá 180 giây chưa lấy, không nhận đơn mới / TR-02
+    ApplicationFailed --> ManualRecovery: STF / Chỉ STF hoặc OPS, ghi actor và lý do / BR-ACL-01 BR-INC-03
+    QualityCheckFailed --> ManualRecovery: STF / Chỉ STF hoặc OPS / BR-ACL-01 BR-INC-03
+    PowerLost --> ManualRecovery: STF / Có điện thì không tự resume / SR-12 BR-ACL-01
+    EmergencyStopped --> ManualRecovery: STF / Vùng làm việc trống và không có tay / SR-03 BR-ACL-01
+    RefundPending --> Refunded: PAY / Refund success đúng giao dịch đã Success / PR-06
+    RefundPending --> ManualRecovery: SYS / Provider fail sau 3 lần hoặc quá 24 giờ / PR-08
+    Completed --> [*]: SYS / Trạng thái kết. OPS chỉ bút toán, không chạy robot / BR-STA-02
+    Refunded --> [*]: SYS / Trạng thái kết / BR-STA-02
+    Cancelled --> [*]: SYS / Trạng thái kết / BR-STA-02
+    Applying --> PowerLost: LOC / Mất điện khi đang có máy trong khay. UPS ghi snapshot, không tự mở / SR-10 SR-11

@@ -1,0 +1,112 @@
+flowchart TD
+    A0["Bước 0 — Kiosk rảnh, chưa có ORDER"]
+    D0["Đủ GR-01 đến GR-08?"]
+    OOS["OUT_OF_SERVICE — không nhận đơn mới"]
+    A1["Bước 1 — CUS bắt đầu. ORDER = Created, origin = KIOSK, customer_id null"]
+    D120["Chọn xong trong 120 giây?"]
+    CAN["ORDER = Cancelled"]
+    A2["Bước 2 — Hiện model và pattern. Vị trí dán = template SKU, không chọn tự do"]
+    DSTOCK["Còn SKU active, stock_available > 0?"]
+    HIDE["Ẩn SKU, không tạo QR"]
+    A3["Bước 3 — Tick đủ 4 điều kiện. Thiếu thì khóa nút Thanh toán"]
+    A4["Bước 4 — Kiểm lại GR và tồn. PAYMENT Pending, reserve, QR 300 giây. Không mở khay"]
+    DPAY["Kết quả thanh toán"]
+    PAID["ORDER = Paid, started_insert_at = now. Cửa sổ đặt máy 300 giây"]
+    PFAIL["ORDER = PaymentFailed, nhả reserve, không giữ tiền"]
+    PUNK["ORDER = PaymentUnknown. Không dán. Giữ reserve tối đa 15 phút"]
+    DREC["Đối soát webhook và inquiry"]
+    MAN["ORDER = ManualRecovery. Chỉ STF hoặc OPS, có PIN"]
+    DINS["Có máy trong khay trước 300 giây, hay khách hủy?"]
+    INS["ORDER = DeviceInserted. Cảm biến có một máy và đã Paid"]
+    REFP["ORDER = RefundPending. Hoàn 100%"]
+    A7["Bước 7 — Đo so với template của phone_model_id. Không nhận diện model"]
+    DDEV["Kết quả đo"]
+    MIS["ORDER = DeviceMisaligned"]
+    UNS["ORDER = DeviceUnsupported. Cấm skip"]
+    DTRY["Còn lượt đặt lại? Chưa tới lần 3, mỗi lần 90 giây"]
+    LOCK["Bước 8 — ORDER = Locked chỉ khi cảm biến tray_locked"]
+    DLCK["BR-LCK-01 đủ để apply?"]
+    NOAPP["Không gửi apply"]
+    APP["Bước 9 — ORDER = Applying. Đúng 1 lần"]
+    DAPP["Kết quả apply"]
+    QA["Bước 10 — ORDER = QualityChecking"]
+    APPF["ORDER = ApplicationFailed. Giữ khóa. INCIDENT HIGH. Không retry"]
+    ESTOP["ORDER = EmergencyStopped. Khay giữ nguyên khóa"]
+    DQA["QA đạt?"]
+    QAF["ORDER = QualityCheckFailed. Giữ khóa. Không tự mở"]
+    PICK["Bước 11 — Mở khay. ORDER = ReadyForPickup, 180 giây"]
+    DPICK["Khay trống trong 180 giây?"]
+    DONE["ORDER = Completed"]
+    UNCL["ORDER = UnclaimedDevice. Không nhận đơn mới đến khi khay trống"]
+    STFCHK["STF xác nhận máy còn hay không, chụp ảnh, đóng phiên. Không sang status mới ngoài mục 10.2"]
+    PWR["ORDER = PowerLost. Không tự mở khay. Không tự resume"]
+    REFD["ORDER = Refunded"]
+    REJECT["Từ chối hoàn. Giữ Completed. Hiện lý do"]
+    END["Kết phiên. BR-STA-02: Completed, Refunded, Cancelled không chạy robot lại"]
+    A0 -->|"Kiểm cổng bán · GR-01 GR-02 GR-03 GR-04 GR-05 GR-06 GR-07 GR-08"| D0
+    D0 -->|"Thiếu một cổng · GR-01..GR-08. Hết tem BR-OPS-04. Mất cloud quá 2 phút SR-23. Thiếu checklist BR-OPS-01"| OOS
+    D0 -->|"Đủ cổng · CUS · BR-CUS-01"| A1
+    A1 -->|"Mục 12 [MVP-DEFAULT] 120 giây. 45 giây không chạm thì reset UI, chưa Paid"| D120
+    D120 -->|"Khách rời, quá 120 giây, hoặc hết SERVING · GR-01"| CAN
+    D120 -->|"Còn trong hạn · BR-CAT-01 BR-CAT-02 BR-SEL-01 BR-CAT-04"| A2
+    A2 -->|"Giá sẽ khóa lúc xác nhận · BR-CAT-03"| DSTOCK
+    DSTOCK -->|"available = 0 hoặc SKU inactive · BR-CAT-02 BR-STK-05 BR-CAT-05"| HIDE
+    DSTOCK -->|"Còn hàng · BR-SEL-02. Tick không thay được bước đo"| A3
+    A3 -->|"Đủ 4 tick · SYS kiểm lại GR và stock_available · BR-STK-01 BR-PAY-01 PR-03 PR-05"| A4
+    A4 -->|"QR hiện, khay không mở · BR-PAY-01 BR-PAY-02"| DPAY
+    DPAY -->|"PAY webhook success, amount khớp, đúng một Success · BR-PAY-02 PR-02 PR-03 PR-04"| PAID
+    DPAY -->|"Provider fail hoặc QR hết 300 giây · BR-STK-02"| PFAIL
+    DPAY -->|"Webhook lệch inquiry · BR-PAY-03"| PUNK
+    DPAY -->|"CUS hủy khi chưa Paid, nhả reserve · BR-STK-02"| CAN
+    PFAIL -->|"Không thu nên không hoàn · BR-STK-02"| CAN
+    PUNK -->|"Không dán, không đoán Paid · BR-PAY-03 SR-21"| DREC
+    DREC -->|"Đối soát trong 15 phút, có tiền · BR-PAY-03"| PAID
+    DREC -->|"Đối soát không có tiền · BR-PAY-03"| PFAIL
+    DREC -->|"Quá 15 phút vẫn unknown, không dán · BR-PAY-03"| MAN
+    PAID -->|"Cửa sổ đặt máy 300 giây. Đã Paid thì không reset để phục vụ khách khác · TR-01"| DINS
+    DINS -->|"Hết 300 giây không đặt, hoặc CUS hủy trước khóa · PR-06"| REFP
+    DINS -->|"Cảm biến có một máy. Chưa Paid thì không gán DeviceInserted · BR-PAY-01"| INS
+    INS -->|"Đo template của model đã chọn · BR-DEV-01"| A7
+    A7 -->|"So template đã chọn. Cấm nút skip · BR-DEV-03"| DDEV
+    DDEV -->|"Khay trống hoặc còn tay người: không đổi status, không khóa · BR-DEV-01"| A7
+    DDEV -->|"Nhiều vật, góc yaw trên 3 độ, hoặc lệch tâm trên 2 mm · BR-DEV-01"| MIS
+    DDEV -->|"WxH lệch quá ±1.5 mm hoặc dày hơn template + 1.0 mm · BR-DEV-01 BR-DEV-03"| UNS
+    DDEV -->|"Khớp template và tray_locked · BR-DEV-01"| LOCK
+    MIS -->|"Mỗi lần lệch tính 1 fail, hạn 90 giây · BR-DEV-02"| DTRY
+    DTRY -->|"Còn lượt, chưa tới lần 3. Về cửa sổ Paid, không apply · BR-DEV-02"| PAID
+    DTRY -->|"Lần 3 fail, khay không khóa hoặc đã mở, cảm biến trống · BR-DEV-02"| REFP
+    UNS -->|"Khay trống sau khi mở để rút · PR-06"| REFP
+    LOCK -->|"robot_enable cần Locked, tray_locked, e_stop false, Paid, sku reserved · BR-LCK-01 SR-01"| DLCK
+    DLCK -->|"Thiếu một điều kiện, kể cả cloud gửi nhầm · SR-01 SR-05"| NOAPP
+    DLCK -->|"Local chấp nhận. Tối đa 1 apply · BR-APL-02"| APP
+    APP -->|"Lực không vượt max_force_n · SR-04"| DAPP
+    DAPP -->|"apply_done, không fault. on_hand trừ 1, nhả reserve · BR-STK-03 BR-APL-02"| QA
+    DAPP -->|"Lực, mất bước, mở khay, mất sensor. Giữ khóa · BR-APL-01 SR-04 SR-05 BR-INC-01"| APPF
+    DAPP -->|"E-stop. Một status EmergencyStopped, vẫn INCIDENT · SR-02 BR-APL-01 BR-INC-01"| ESTOP
+    APP -->|"Mất điện khi đang có máy · SR-10 SR-11"| PWR
+    LOCK -->|"Mất điện · SR-10 SR-11"| PWR
+    LOCK -->|"E-stop, khay giữ khóa · SR-02"| ESTOP
+    QA -->|"Cạnh tối đa 1.5 mm, xoay tối đa 1.5 độ, không đè mask, không bọt trên 3 mm, không hở góc · mục 9 bước 10"| DQA
+    DQA -->|"QA Pass. Cạnh tối đa 1.5 mm, xoay tối đa 1.5 độ · mục 9 bước 10"| PICK
+    DQA -->|"QA Fail · BR-INC-01"| QAF
+    QAF -->|"Chỉ STF/OPS · BR-ACL-01 BR-INC-03"| MAN
+    APPF -->|"Chỉ STF/OPS. Picker taken vẫn trừ on_hand · BR-ACL-01 BR-STK-04"| MAN
+    APPF -->|"E-stop, khay giữ khóa · SR-02"| ESTOP
+    QAF -->|"E-stop, khay giữ khóa · SR-02"| ESTOP
+    PICK -->|"Cửa sổ lấy máy 180 giây · mục 12"| DPICK
+    DPICK -->|"Khay trống · mục 9 bước 11"| DONE
+    DPICK -->|"Quá 180 giây · TR-02"| UNCL
+    PICK -->|"Mất điện · SR-11"| PWR
+    PWR -->|"Có điện không tự resume. STF xác nhận máy · SR-12 BR-ACL-01"| MAN
+    ESTOP -->|"Reset chỉ khi vùng trống, không có tay · SR-03 BR-ACL-01"| MAN
+    REFP -->|"Provider refund success, đúng giao dịch, không tiền mặt · PR-06"| REFD
+    REFP -->|"Refund fail 3 lần hoặc quá 24 giờ · PR-08"| MAN
+    DONE -->|"Khách đổi ý sau QA Pass · PR-07 BR-STA-02"| REJECT
+    DONE -->|"Kết · BR-STA-02"| END
+    REFD -->|"Kết · BR-STA-02"| END
+    CAN -->|"Kết · BR-STA-02"| END
+    UNCL -->|"STF xác nhận, không đổi status ngoài mục 10.2 · TR-02 BR-INC-04"| STFCHK
+    NOTE_108["BR-STA-01: cấm nhảy cóc, ví dụ Paid sang Applying hoặc Created sang Locked. Activity đi đúng cổng mục 9."]
+    NOTE_109["P4: local quyết định an toàn máy, cloud quyết định tiền. Mất mạng lúc Pending không bịa Paid · SR-20 SR-21."]
+    NOTE_110["ApplicationFailed và QualityCheckFailed sang ManualRecovery theo mục 10.2. Hoàn 100% ghi ở REFUND_REQUEST theo mục 11, không thêm status ngoài bảng 10.2."]
+    NOTE_111["4 tick: đúng model đã chọn; tháo ốp và phụ kiện; lưng khô không nứt sẽ lau; hiểu khay khóa và sự cố do nhân viên."]
