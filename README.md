@@ -17,6 +17,7 @@ Trang này render đặc tả đã khóa (MVP v2) và các sơ đồ Mermaid. B�
 - [Thanh toán và hoàn tiền](#thanh-toán-và-hoàn-tiền)
 - [Timeout](#timeout)
 - [An toàn máy](#an-toàn-máy)
+- [Kiến trúc C4](#kiến-trúc-c4)
 - [Sơ đồ](#sơ-đồ)
 - [Backlog GitHub](#backlog-github)
 
@@ -132,6 +133,118 @@ Số trong bảng là `[MVP-DEFAULT]`. Đổi số thì phải sửa đặc tả
 `robot_enable` khi đơn đang Locked, khay locked, e-stop tắt, payment Paid, và SKU còn reserve (BR-LCK-01). Local chặn apply nếu khay chưa khóa, kể cả cloud gửi nhầm (SR-01). E-stop cắt motion ngay, đơn `EmergencyStopped`, khay giữ nguyên khóa (SR-02). Chỉ STF hoặc OPS reset khi vùng trống (SR-03). Lực vượt `max_force_n` thì dừng (SR-04). Cấm apply khi camera hoặc cảm biến timeout (SR-05).
 
 Mất điện: UPS ghi snapshot, `PowerLost`, không tự mở khay, không tự dán tiếp (SR-10, SR-11, SR-12).
+
+## Kiến trúc C4
+
+Chương arc42 đầy đủ: [docs/architecture/README.md](docs/architecture/README.md). Cấu trúc theo [arc42](https://arc42.org/) và [C4](https://c4model.com/). Hai mẫu toolchain Structurizr là [bitsmuggler/arc42-c4](https://github.com/bitsmuggler/arc42-c4-software-architecture-documentation-example) và [milanm/architecture-docs](https://github.com/milanm/architecture-docs). Nhóm vẽ bằng Mermaid để trang này tự render. Mức code chưa có vì chưa có ứng dụng.
+
+### C4 Context
+
+```mermaid
+C4Context
+    title System Context - phan mem kiosk dan sticker
+    Person(cus, "Khach CUS", "Chon model, tra QR, dat va lay may, bam e-stop")
+    Person(stf, "Nhan vien STF", "PIN, su co, nap tem, mo khoa")
+    Person(ops, "Quan ly OPS", "Gia, model, nguong, duyet hoan tay")
+    System(kiosk, "Phan mem kiosk sticker", "Don, thanh toan, an toan may, dan theo template")
+    System_Ext(pay, "Payment provider", "VietQR, webhook Paid hoac Failed, refund. Khong luu PAN")
+    Rel(cus, kiosk, "Thao tac tren man kiosk", "UI")
+    Rel(stf, kiosk, "Mo khoa va xu ly su co", "PIN")
+    Rel(ops, kiosk, "Cau hinh va duyet hoan", "Backoffice")
+    Rel(kiosk, pay, "Tao QR va yeu cau hoan", "HTTPS")
+    Rel(pay, kiosk, "Webhook ket qua tien", "HTTPS")
+```
+
+### C4 Container
+
+```mermaid
+C4Container
+    title Container - phan mem kiosk sticker
+    Person(cus, "Khach CUS", "Tu phuc vu tai may")
+    System_Boundary(sw, "Phan mem kiosk") {
+        Container(ui, "Kiosk UI", "Web", "Man hinh chon, QR, huong dan. Khong dieu khien robot")
+        Container(cloud, "Cloud backend", "REST", "Order, catalog, payment, refund, staff. Nguon su that tien")
+        Container(local, "Local controller", "MQTT hoac WS", "Khay, interlock, lenh nghiep vu. Nguon su that an toan may")
+        ContainerDb(db, "Database", "SQL", "ORDER.status, payment, stock, audit")
+    }
+    System_Ext(pay, "Payment provider", "VietQR")
+    Rel(cus, ui, "Chon va thanh toan")
+    Rel(ui, cloud, "Don va catalog", "HTTPS REST")
+    Rel(ui, local, "Lenh va su kien", "MQTT hoac WS")
+    Rel(cloud, db, "Doc ghi trang thai don")
+    Rel(cloud, pay, "Tao QR, hoan tien, nhan webhook", "HTTPS")
+    Rel(local, cloud, "Day event khi co mang, khong bia Paid", "MQTT")
+```
+
+### C4 Component cloud
+
+```mermaid
+C4Component
+    title Component - Cloud backend
+    Container(ui, "Kiosk UI", "Web", "Goi REST")
+    Container(local, "Local controller", "MQTT", "Gui event, nhan lenh")
+    ContainerDb(db, "Database", "SQL", "ORDER.status la nguon su that nghiep vu")
+    System_Ext(pay, "Payment provider", "Webhook")
+    Container_Boundary(cloud, "Cloud backend") {
+        Component(catalog, "Catalog", "Service", "BR-CAT va BR-STK. An SKU het hang")
+        Component(order, "Order", "Service", "ORDER.status. Cam nhay coc BR-STA-01")
+        Component(payment, "Payment", "Service", "Webhook la nguon Paid. PR-03 tu choi sai amount")
+        Component(refund, "Refund", "Service", "REFUND_REQUEST. Khong tu Refunded tu ManualRecovery")
+        Component(staff, "Staff", "Service", "PIN, BR-ACL-01, duyet hoan tay")
+    }
+    Rel(ui, catalog, "Lay model va SKU", "REST")
+    Rel(ui, order, "Tao va huy don", "REST")
+    Rel(ui, payment, "Xin QR", "REST")
+    Rel(pay, payment, "Webhook", "HTTPS")
+    Rel(payment, order, "Chi webhook hop le moi Paid", "BR-PAY-02")
+    Rel(order, db, "Ghi status")
+    Rel(payment, db, "Ghi PAYMENT, khong luu PAN")
+    Rel(refund, payment, "Hoan dung giao dich Success", "PR-06")
+    Rel(staff, order, "ManualRecovery", "BR-ACL-01")
+    Rel(local, order, "Event may, khong sua tien", "MQTT")
+```
+
+### C4 Component local
+
+```mermaid
+C4Component
+    title Component - Local controller
+    Container(cloud, "Cloud backend", "REST", "Gui lenh nghiep vu")
+    Container_Boundary(local, "Local controller") {
+        Component(gateway, "Command gateway", "MQTT", "home, inspect_device, lock_tray, unlock_tray, pick_sku, apply, qa_capture, estop_ack, safe_halt")
+        Component(interlock, "Interlock", "Policy", "Tu choi apply neu thieu BR-LCK-01 hoac SR-01")
+        Component(queue, "Event queue", "Store", "SR-24 dung thu tu, idempotent")
+        Component(safety, "Safety", "Monitor", "SR-02 e-stop, SR-10 snapshot mat dien")
+    }
+    Rel(cloud, gateway, "Lenh nghiep vu, khong gui goc khop")
+    Rel(gateway, interlock, "apply phai qua interlock")
+    Rel(safety, interlock, "e-stop hoac mat sensor thi chan motion", "SR-02 SR-05")
+    Rel(gateway, queue, "Xep heartbeat, inspect_result, apply_success, picker_taken, force_n")
+    Rel(queue, cloud, "Gui lai khi co mang, khong doan Paid", "SR-21")
+```
+
+### C4 Deployment
+
+```mermaid
+C4Deployment
+    title Deployment - mot kiosk MVP, khong ve phan cung
+    Deployment_Node(site, "Diem thu", "1 may") {
+        Deployment_Node(kiosk_node, "May kiosk", "Phan mem tai cho") {
+            Container(ui, "Kiosk UI", "Web", "Man hinh khach")
+            Container(local, "Local controller", "MQTT", "An toan may")
+        }
+    }
+    Deployment_Node(cloud_node, "Cloud", "Dat ten nha cung cap sau") {
+        Container(cloud, "Cloud backend", "REST", "Tien va don")
+        ContainerDb(db, "Database", "SQL", "ORDER.status")
+    }
+    Deployment_Node(pay_node, "Nha cung cap thanh toan", "Ngoai he thong") {
+        System_Ext(pay, "Payment provider", "VietQR")
+    }
+    Rel(ui, cloud, "REST", "HTTPS")
+    Rel(local, cloud, "MQTT", "Event va lenh")
+    Rel(cloud, pay, "Webhook", "HTTPS")
+```
 
 ## Sơ đồ
 

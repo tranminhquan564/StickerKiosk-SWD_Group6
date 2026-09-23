@@ -1,0 +1,24 @@
+C4Component
+    title Component - Cloud backend
+    Container(ui, "Kiosk UI", "Web", "Goi REST")
+    Container(local, "Local controller", "MQTT", "Gui event, nhan lenh")
+    ContainerDb(db, "Database", "SQL", "ORDER.status la nguon su that nghiep vu")
+    System_Ext(pay, "Payment provider", "Webhook")
+    Container_Boundary(cloud, "Cloud backend") {
+        Component(catalog, "Catalog", "Service", "BR-CAT va BR-STK. An SKU het hang")
+        Component(order, "Order", "Service", "ORDER.status. Cam nhay coc BR-STA-01")
+        Component(payment, "Payment", "Service", "Webhook la nguon Paid. PR-03 tu choi sai amount")
+        Component(refund, "Refund", "Service", "REFUND_REQUEST. Khong tu Refunded tu ManualRecovery")
+        Component(staff, "Staff", "Service", "PIN, BR-ACL-01, duyet hoan tay")
+    }
+    Rel(ui, catalog, "Lay model va SKU", "REST")
+    Rel(ui, order, "Tao va huy don", "REST")
+    Rel(ui, payment, "Xin QR", "REST")
+    Rel(pay, payment, "Webhook", "HTTPS")
+    Rel(payment, order, "Chi webhook hop le moi Paid", "BR-PAY-02")
+    Rel(order, db, "Ghi status")
+    Rel(payment, db, "Ghi PAYMENT, khong luu PAN")
+    Rel(refund, payment, "Hoan dung giao dich Success", "PR-06")
+    Rel(staff, order, "ManualRecovery", "BR-ACL-01")
+    Rel(local, order, "Event may, khong sua tien", "MQTT")
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

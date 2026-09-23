@@ -1,0 +1,15 @@
+C4Component
+    title Component - Local controller
+    Container(cloud, "Cloud backend", "REST", "Gui lenh nghiep vu")
+    Container_Boundary(local, "Local controller") {
+        Component(gateway, "Command gateway", "MQTT", "home, inspect_device, lock_tray, unlock_tray, pick_sku, apply, qa_capture, estop_ack, safe_halt")
+        Component(interlock, "Interlock", "Policy", "Tu choi apply neu thieu BR-LCK-01 hoac SR-01")
+        Component(queue, "Event queue", "Store", "SR-24 dung thu tu, idempotent")
+        Component(safety, "Safety", "Monitor", "SR-02 e-stop, SR-10 snapshot mat dien")
+    }
+    Rel(cloud, gateway, "Lenh nghiep vu, khong gui goc khop")
+    Rel(gateway, interlock, "apply phai qua interlock")
+    Rel(safety, interlock, "e-stop hoac mat sensor thi chan motion", "SR-02 SR-05")
+    Rel(gateway, queue, "Xep heartbeat, inspect_result, apply_success, picker_taken, force_n")
+    Rel(queue, cloud, "Gui lai khi co mang, khong doan Paid", "SR-21")
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

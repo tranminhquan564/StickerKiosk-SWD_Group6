@@ -1,0 +1,17 @@
+C4Container
+    title Container - phan mem kiosk sticker
+    Person(cus, "Khach CUS", "Tu phuc vu tai may")
+    System_Boundary(sw, "Phan mem kiosk") {
+        Container(ui, "Kiosk UI", "Web", "Man hinh chon, QR, huong dan. Khong dieu khien robot")
+        Container(cloud, "Cloud backend", "REST", "Order, catalog, payment, refund, staff. Nguon su that tien")
+        Container(local, "Local controller", "MQTT hoac WS", "Khay, interlock, lenh nghiep vu. Nguon su that an toan may")
+        ContainerDb(db, "Database", "SQL", "ORDER.status, payment, stock, audit")
+    }
+    System_Ext(pay, "Payment provider", "VietQR")
+    Rel(cus, ui, "Chon va thanh toan")
+    Rel(ui, cloud, "Don va catalog", "HTTPS REST")
+    Rel(ui, local, "Lenh va su kien", "MQTT hoac WS")
+    Rel(cloud, db, "Doc ghi trang thai don")
+    Rel(cloud, pay, "Tao QR, hoan tien, nhan webhook", "HTTPS")
+    Rel(local, cloud, "Day event khi co mang, khong bia Paid", "MQTT")
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

@@ -355,6 +355,8 @@ def main():
         if path.name in ("State-ORDER.mmd", "State-Ngat.mmd"):
             continue
         text = path.read_text(encoding="utf-8")
+        if text.startswith("C4"):
+            continue
         if text.startswith("erDiagram"):
             entities, rels = parse_er(text)
             pages[path.stem] = layout_er(path.stem, entities, rels)
